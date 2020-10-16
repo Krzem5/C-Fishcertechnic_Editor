@@ -21,5 +21,8 @@ void update_editor(double dt){
 	static float t=0;
 	t+=(float)(dt*1e-6);
 	update_ui(dt);
+	if (renderer_w==NULL){
+		return;
+	}
 	printf("%f (%f)\n",dt*1e-6,t);
 }

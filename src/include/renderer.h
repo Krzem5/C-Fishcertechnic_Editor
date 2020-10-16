@@ -10,12 +10,22 @@
 #define TWO_PI ((float)6.283185307f)
 #define PI ((float)3.141592654f)
 #define PI_DIV_TWO ((float)1.570796327f)
+#define M_LEFT 0x001
+#define M_LEFT_DBL 0x002
+#define M_MIDDLE 0x004
+#define M_MIDDLE_DBL 0x008
+#define M_RIGHT 0x010
+#define M_RIGHT_DBL 0x020
+#define M_X1 0x040
+#define M_X1_DBL 0x080
+#define M_X2 0x100
+#define M_X2_DBL 0x200
 #define raw_vector(x,y,z,w) ((RawVector){(x),(y),(z),(w)})
 #define raw_identity_matrix() ((RawMatrix){1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1})
 #define raw_matrix(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) ((RawMatrix){(a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p)})
 #define as_raw_matrix(m) (*((RawMatrix*)(m)))
 #define free_matrix(m) ((m)!=NULL?(free((m)),NULL):NULL)
-#define renderer_aspect_ratio() (renderer_ww/(float)renderer_wh)
+#define renderer_aspect_ratio (renderer_ww/(float)renderer_wh)
 
 
 
@@ -72,6 +82,10 @@ struct _OBJECT_BUFFER{
 extern HWND renderer_w;
 extern uint32_t renderer_ww;
 extern uint32_t renderer_wh;
+extern uint16_t renderer_mx;
+extern uint16_t renderer_my;
+extern uint16_t renderer_mf;
+extern float renderer_wsf;
 extern bool renderer_wf;
 extern float renderer_cc[4];
 extern ID3D11Device* renderer_d3_d;
@@ -85,6 +99,8 @@ extern ID3D11Texture2D* renderer_d3_ds;
 extern ID3D11DepthStencilView* renderer_d3_sv;
 extern ID3D11DepthStencilState* renderer_d3_dss;
 extern ID3D11DepthStencilState* renderer_d3_ddss;
+extern ID3D11BlendState* renderer_d3_bse;
+extern ID3D11BlendState* renderer_d3_bsd;
 
 
 
@@ -148,7 +164,7 @@ void use_pixel_shader(ID3D11PixelShader* ps);
 
 
 
-void close(void);
+void close_window(void);
 
 
 
