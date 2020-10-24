@@ -27,6 +27,7 @@
 #define TOPBAR_WINDOW_OP_STROKE_LERP_R 0.76f
 #define TOPBAR_WINDOW_OP_STROKE_LERP_G 0.76f
 #define TOPBAR_WINDOW_OP_STROKE_LERP_B 0.76f
+#define TOPBAR_MAXIMIZE_WINDOW_BUFFER (TOPBAR_HEIGHT/2)
 #define C_NONE C_APPSTARTING
 #define C_APPSTARTING 32650
 #define C_ARROW 32512
@@ -61,9 +62,11 @@ ID3D11Buffer* cb=NULL;
 uint16_t _lc=C_NONE;
 uint16_t nc=C_NONE;
 bool mx=false;
-bool d_tb=false;
+uint8_t d_tb=0;
 uint16_t d_tb_ox=0;
 uint16_t d_tb_oy=0;
+uint16_t ow=0;
+uint16_t oh=0;
 
 
 
@@ -258,7 +261,6 @@ void recalc_topbar(void){
 		*(tb_lvl+45)=TOPBAR_WINDOW_OP_STROKE_G;
 		*(tb_lvl+46)=TOPBAR_WINDOW_OP_STROKE_B;
 		*(tb_lvl+47)=1;
-		/****************************************/
 		*(tb_lvl+48)=renderer_ww-TOPBAR_WINDOW_OP_WIDTH*1.5f-TOPBAR_WINDOW_OP_STROKE_SZ*0.5f;
 		*(tb_lvl+49)=TOPBAR_WINDOW_OP_HEIGHT*0.5f-TOPBAR_WINDOW_OP_STROKE_SZ*0.5f;
 		*(tb_lvl+50)=0;
@@ -291,7 +293,6 @@ void recalc_topbar(void){
 		*(tb_lvl+77)=TOPBAR_WINDOW_OP_STROKE_G;
 		*(tb_lvl+78)=TOPBAR_WINDOW_OP_STROKE_B;
 		*(tb_lvl+79)=1;
-		/*****************************/
 		*(tb_lvl+80)=renderer_ww-TOPBAR_WINDOW_OP_WIDTH*1.5f-TOPBAR_WINDOW_OP_STROKE_SZ*0.25f;
 		*(tb_lvl+81)=TOPBAR_WINDOW_OP_HEIGHT*0.5f-TOPBAR_WINDOW_OP_STROKE_SZ*0.5f;
 		*(tb_lvl+82)=0;
@@ -336,10 +337,15 @@ void recalc_topbar(void){
 	for (uint8_t i=0;i<3;i++){
 		if (renderer_wf==true&&renderer_my<TOPBAR_WINDOW_OP_HEIGHT&&renderer_ww-TOPBAR_WINDOW_OP_WIDTH*(3-i)<=renderer_mx&&renderer_mx<renderer_ww-TOPBAR_WINDOW_OP_WIDTH*(2-i)){
 			if (renderer_mf&M_LEFT){
+				d_tb=2;
 				if (i==0){
 					ShowWindow(renderer_w,SW_MINIMIZE);
 				}
 				else if (i==1){
+					if (mx==false){
+						ow=renderer_ww;
+						oh=renderer_wh;
+					}
 					ShowWindow(renderer_w,(mx==false?SW_MAXIMIZE:SW_RESTORE));
 					free(tb_vl);
 					free(tb_lvl);
@@ -384,24 +390,56 @@ void recalc_topbar(void){
 		*(tb_lvl+i*8+5)=TOPBAR_WINDOW_OP_STROKE_G+(*(tb_op_a+(i<2?0:2)))*(TOPBAR_WINDOW_OP_STROKE_LERP_R-TOPBAR_WINDOW_OP_STROKE_G);
 		*(tb_lvl+i*8+6)=TOPBAR_WINDOW_OP_STROKE_B+(*(tb_op_a+(i<2?0:2)))*(TOPBAR_WINDOW_OP_STROKE_LERP_R-TOPBAR_WINDOW_OP_STROKE_B);
 	}
-	if (renderer_my<TOPBAR_WINDOW_OP_HEIGHT){
-		nc=C_ARROW;
-		if ((renderer_mf&M_LEFT)!=0&&renderer_mx<renderer_ww-TOPBAR_WINDOW_OP_WIDTH*3&&d_tb==false){
-			d_tb_ox=renderer_mx;
-			d_tb_oy=renderer_my;
-			d_tb=true;
+	if (renderer_wf==true){
+		if (renderer_my<TOPBAR_WINDOW_OP_HEIGHT){
+			nc=C_ARROW;
+			if ((renderer_mf&M_LEFT)!=0&&renderer_mx<renderer_ww-TOPBAR_WINDOW_OP_WIDTH*3&&d_tb==0){
+				if (mx==true){
+					mx=false;
+					ShowWindow(renderer_w,SW_RESTORE);
+					free(tb_vl);
+					free(tb_lvl);
+					tb_vl=NULL;
+					tb_lvl=NULL;
+					POINT mp;
+					GetCursorPos(&mp);
+					MoveWindow(renderer_w,mp.x-ow/2,0,ow,oh,false);
+					d_tb_ox=(uint16_t)ow/2;
+					d_tb_oy=(uint16_t)mp.y;
+					d_tb=1;
+					return;
+				}
+				d_tb_ox=renderer_mx;
+				d_tb_oy=renderer_my;
+				d_tb=1;
+			}
+		}
+		if ((renderer_mf&M_LEFT)==0&&d_tb!=0){
+			d_tb=0;
+			POINT mp;
+			GetCursorPos(&mp);
+			if (mp.y<TOPBAR_MAXIMIZE_WINDOW_BUFFER&&mx==false){
+				d_tb=2;
+				ow=renderer_ww;
+				oh=renderer_wh;
+				mx=true;
+				ShowWindow(renderer_w,SW_MAXIMIZE);
+				free(tb_vl);
+				free(tb_lvl);
+				tb_vl=NULL;
+				tb_lvl=NULL;
+				return;
+			}
+		}
+		if (d_tb==1){
+			POINT mp;
+			GetCursorPos(&mp);
+			MoveWindow(renderer_w,mp.x-d_tb_ox,mp.y-d_tb_oy,renderer_ww,renderer_wh,false);
 		}
 	}
-	// if (d_tb==true){
-	// 	if ((renderer_mf&M_LEFT)==0){
-	// 		d_tb=false;
-	// 	}
-	// 	else{
-	// 		POINT mp;
-	// 		GetCursorPos(&mp);
-	// 		MoveWindow(renderer_w,mp.x-d_tb_ox,mp.y-d_tb_oy,renderer_ww,renderer_wh,false);
-	// 	}
-	// }
+	else{
+		d_tb=((renderer_mf&M_LEFT)==0?0:2);
+	}
 	if (tb_ib==NULL){
 		uint16_t il[]={
 			0,

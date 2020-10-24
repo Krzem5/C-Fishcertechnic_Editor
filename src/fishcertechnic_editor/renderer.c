@@ -1,7 +1,6 @@
 #define COBJMACROS
 #include <renderer.h>
 #include <editor.h>
-#include <ui.h>
 #include <windows.h>
 #include <windowsx.h>
 #include <unknwn.h>
@@ -672,7 +671,8 @@ void init_renderer(void){
 		else{
 			ID3D11DeviceContext_ClearRenderTargetView(renderer_d3_dc,renderer_d3_rt,renderer_cc);
 			ID3D11DeviceContext_ClearDepthStencilView(renderer_d3_dc,renderer_d3_dsv,D3D11_CLEAR_DEPTH,1.0f,0);
-			update_editor((double)((c.QuadPart-lt.QuadPart)*1000000/tf.QuadPart));
+			double dt=(double)((c.QuadPart-lt.QuadPart)*1000000/tf.QuadPart);
+			update_editor(dt);
 		}
 		if (renderer_w==NULL){
 			break;
@@ -726,7 +726,7 @@ ID3D11PixelShader* load_pixel_shader(const BYTE* dt,size_t ln){
 ID3D11Buffer* create_constant_buffer(uint16_t l){
 	if (l%16!=0){
 		printf("%hu Bytes of Padding Required!",16-l%16);
-		assert(l%16==0);
+		assert(0);
 	}
 	D3D11_BUFFER_DESC bd={
 		l,
