@@ -122,9 +122,9 @@ Matrix update_camera(Camera c,float dt){
 			c->_oy-=c->ms*dt;
 		}
 		if (rc==true){
-			c->x=c->_ox+c->zm*sinf(-c->rx+PI_DIV_TWO)*cosf(c->ry+PI);
+			c->x=c->_ox+c->zm*sinf(-c->rx+PI_DIV_TWO)*cosf(PI-c->ry);
 			c->y=c->_oy+c->zm*cosf(-c->rx+PI_DIV_TWO);
-			c->z=c->_oz+c->zm*sinf(-c->rx+PI_DIV_TWO)*sinf(c->ry+PI);
+			c->z=c->_oz+c->zm*sinf(-c->rx+PI_DIV_TWO)*sinf(PI-c->ry);
 		}
 	}
 	return look_at_matrix(c->x,c->y,c->z,sinf(c->rx-PI_DIV_TWO)*cosf(c->ry),cosf(c->rx-PI_DIV_TWO),sinf(c->rx-PI_DIV_TWO)*sinf(c->ry),0,1,0);
@@ -133,6 +133,7 @@ Matrix update_camera(Camera c,float dt){
 
 
 struct CBufferLayout{
+	RawVector cd;
 	RawMatrix cm;
 	RawMatrix pm;
 };
@@ -146,7 +147,7 @@ ID3D11Buffer* g_vb=NULL;
 ID3D11VertexShader* vs=NULL;
 ID3D11PixelShader* ps=NULL;
 ID3D11Buffer* cb=NULL;
-Matrix pm;
+RawMatrix pm;
 Camera c;
 
 
@@ -183,9 +184,11 @@ void init_editor(void){
 	*(renderer_cc+1)=EDITOR_BG_COLOR_G;
 	*(renderer_cc+2)=EDITOR_BG_COLOR_B;
 	*(renderer_cc+3)=1;
-	c=create_camera(10,500,0,0,0,-90,0,0,5);
+	c=create_camera(10,500,0,0,0,90,0,0,1);
 	c->enabled=true;
-	pm=ortographic_matrix(1,-1,-1,1,0.0001f,10000);
+	float n=0.00001f;
+	float f=10000;
+	pm=raw_matrix(1/renderer_aspect_ratio,0,0,0,0,1,0,0,0,0,-2/(f-n),-(f+n)/(f-n),0,0,0,1);
 	init_block_list();
 	init_ui();
 }
@@ -301,12 +304,12 @@ void update_editor(double dt){
 		free(il);
 		free(vl);
 	}
-	ID3D11DeviceContext_OMSetDepthStencilState(renderer_d3_dc,renderer_d3_ddss,1);
 	ID3D11DeviceContext_VSSetShader(renderer_d3_dc,vs,NULL,0);
 	ID3D11DeviceContext_PSSetShader(renderer_d3_dc,ps,NULL,0);
 	struct CBufferLayout cb_dt={
+		raw_vector(sinf(c->rx-PI_DIV_TWO)*cosf(c->ry),cosf(c->rx-PI_DIV_TWO),sinf(c->rx-PI_DIV_TWO)*sinf(c->ry),1),
 		as_raw_matrix(cm),
-		as_raw_matrix(pm)
+		pm
 	};
 	update_constant_buffer(cb,(void*)&cb_dt);
 	ID3D11DeviceContext_VSSetConstantBuffers(renderer_d3_dc,0,1,&cb);
@@ -317,7 +320,10 @@ void update_editor(double dt){
 	ID3D11DeviceContext_IASetIndexBuffer(renderer_d3_dc,g_ib,DXGI_FORMAT_R16_UINT,0);
 	ID3D11DeviceContext_IASetPrimitiveTopology(renderer_d3_dc,D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 	ID3D11DeviceContext_DrawIndexed(renderer_d3_dc,(uint32_t)g_ib_l,0,0);
+	RawMatrix tm=raw_identity_matrix();
+	RawMatrix rtm=raw_identity_matrix();
+	draw_block(blk_l.e,&tm,&rtm,NULL);
 	// printf("%f (%f)\n",dt*1e-6,t);
-	free(cm);
 	draw_ui();
+	free(cm);
 }

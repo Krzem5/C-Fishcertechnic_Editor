@@ -204,8 +204,7 @@ Matrix y_rotation_matrix(float a){
 
 Matrix perspective_fov_matrix(float fov,float a,float n,float f){
 	Matrix o=malloc(sizeof(struct _MATRIX));
-	float fov2=fov/2;
-	float cs=cosf(fov2)/sinf(fov2);
+	float cs=cosf(fov/2)/sinf(fov/2);
 	float r=f/(f-n);
 	o->_00=cs/a;
 	o->_01=0;
@@ -230,7 +229,7 @@ Matrix perspective_fov_matrix(float fov,float a,float n,float f){
 
 Matrix ortographic_matrix(float t,float l,float b,float r,float n,float f){
 	Matrix o=malloc(sizeof(struct _MATRIX));
-	o->_00=2/(r-l);
+	o->_00=2/(r-l)/renderer_aspect_ratio;
 	o->_01=0;
 	o->_02=0;
 	o->_03=-(r+l)/(r-l);

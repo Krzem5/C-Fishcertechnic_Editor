@@ -1,5 +1,6 @@
 #ifndef BLOCK_H
 #define BLOCK_H
+#include <renderer.h>
 #include <stdint.h>
 #include <d3d11_1.h>
 
@@ -30,7 +31,7 @@ struct __BLOCK{
 	ID3D11Buffer* ib;
 	ID3D11Buffer* vb;
 	BlockId* ch;
-	uint16_t _fpl;
+	uint64_t _fsz;
 	char* _fp;
 };
 
@@ -41,6 +42,10 @@ extern BlockArray blk_l;
 
 
 void init_block_list(void);
+
+
+
+void draw_block(Block b,Matrix tm,Matrix rm,Vector cl);
 
 
 

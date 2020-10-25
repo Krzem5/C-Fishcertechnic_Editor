@@ -3,6 +3,7 @@
 
 
 cbuffer core:register(b0){
+	float4 cd;
 	matrix cm;
 	matrix pm;
 };

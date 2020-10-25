@@ -24,6 +24,7 @@
 #define M_X2_DBL 0x200
 #define FRAME_RATE 60
 #define raw_vector(x,y,z,w) ((RawVector){(x),(y),(z),(w)})
+#define as_raw_vector(v) (*((RawVector*)(v)))
 #define raw_identity_matrix() ((RawMatrix){1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1})
 #define raw_matrix(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) ((RawMatrix){(a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p)})
 #define as_raw_matrix(m) (*((RawMatrix*)(m)))
