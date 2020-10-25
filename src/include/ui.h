@@ -11,4 +11,8 @@ void update_ui(double dt);
 
 
 
+void draw_ui(void);
+
+
+
 #endif

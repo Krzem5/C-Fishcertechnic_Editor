@@ -20,8 +20,10 @@
 HWND renderer_w=NULL;
 uint32_t renderer_ww=0;
 uint32_t renderer_wh=0;
-uint16_t renderer_mx=0;
-uint16_t renderer_my=0;
+uint32_t renderer_wx=0;
+uint32_t renderer_wy=0;
+int16_t renderer_mx=0;
+int16_t renderer_my=0;
 uint16_t renderer_mf=0;
 float renderer_wsf=0;
 bool renderer_wf=false;
@@ -52,9 +54,11 @@ LRESULT CALLBACK _msg_cb(HWND hwnd,UINT msg,WPARAM wp,LPARAM lp){
 		case WM_SETFOCUS:
 			renderer_wf=true;
 			return 0;
+		case WM_KEYDOWN:
+			return 0;
 		case WM_MOUSEMOVE:
-			renderer_mx=(uint16_t)GET_X_LPARAM(lp);
-			renderer_my=(uint16_t)GET_Y_LPARAM(lp);
+			renderer_mx=(int16_t)GET_X_LPARAM(lp);
+			renderer_my=(int16_t)GET_Y_LPARAM(lp);
 			return 0;
 		case WM_LBUTTONDBLCLK:
 			renderer_mf|=M_LEFT_DBL;
@@ -135,6 +139,11 @@ LRESULT CALLBACK _msg_cb(HWND hwnd,UINT msg,WPARAM wp,LPARAM lp){
 				ID3D11DeviceContext_RSSetViewports(renderer_d3_dc,1,&vp);
 			}
 			return 0;
+		case WM_MOVING:
+			RECT* r=(RECT*)lp;
+			renderer_wx=r->left;
+			renderer_wy=r->top;
+			return 0;
 		case WM_DESTROY:
 			PostQuitMessage(0);
 			renderer_w=NULL;
@@ -214,6 +223,29 @@ Matrix perspective_fov_matrix(float fov,float a,float n,float f){
 	o->_31=0;
 	o->_32=-n*r;
 	o->_33=0;
+	return o;
+}
+
+
+
+Matrix ortographic_matrix(float t,float l,float b,float r,float n,float f){
+	Matrix o=malloc(sizeof(struct _MATRIX));
+	o->_00=2/(r-l);
+	o->_01=0;
+	o->_02=0;
+	o->_03=-(r+l)/(r-l);
+	o->_10=0;
+	o->_11=2/(t-b);
+	o->_12=0;
+	o->_13=-(t+b)/(t-b);
+	o->_20=0;
+	o->_21=0;
+	o->_22=-2/(f-n);
+	o->_23=-(f+n)/(f-n);
+	o->_30=0;
+	o->_31=0;
+	o->_32=0;
+	o->_33=1;
 	return o;
 }
 
@@ -449,8 +481,10 @@ void init_renderer(void){
 	GetMonitorInfo(MonitorFromWindow(renderer_w,MONITOR_DEFAULTTONEAREST),&mf);
 	renderer_ww=min(1920,mf.rcMonitor.right-mf.rcMonitor.left);
 	renderer_wh=min(1080,mf.rcMonitor.bottom-mf.rcMonitor.top);
+	renderer_wx=mf.rcMonitor.left/2+mf.rcMonitor.right/2-renderer_ww/2;
+	renderer_wy=mf.rcMonitor.top/2+mf.rcMonitor.bottom/2-renderer_wh/2;
 	renderer_wsf=GetDpiForWindow(renderer_w)/96.0f;
-	SetWindowPos(renderer_w,NULL,mf.rcMonitor.left/2+mf.rcMonitor.right/2-renderer_ww/2,mf.rcMonitor.top/2+mf.rcMonitor.bottom/2-renderer_wh/2,renderer_ww,renderer_wh,SWP_NOZORDER|SWP_NOACTIVATE|SWP_FRAMECHANGED);
+	SetWindowPos(renderer_w,NULL,renderer_wx,renderer_wy,renderer_ww,renderer_wh,SWP_NOZORDER|SWP_NOACTIVATE|SWP_FRAMECHANGED);
 	SetCapture(renderer_w);
 	ShowWindow(renderer_w,SW_SHOW);
 	UpdateWindow(renderer_w);
@@ -664,21 +698,24 @@ void init_renderer(void){
 				false
 			};
 			hr=ID3D11Device_CreateRasterizerState(renderer_d3_d,&rd,&renderer_d3_ar);
-			// ID3D11DeviceContext_RSSetState(renderer_d3_dc,renderer_d3_ar);
+			ID3D11DeviceContext_RSSetState(renderer_d3_dc,renderer_d3_ar);
 			init_editor();
 			update_editor(0);
 		}
 		else{
 			ID3D11DeviceContext_ClearRenderTargetView(renderer_d3_dc,renderer_d3_rt,renderer_cc);
 			ID3D11DeviceContext_ClearDepthStencilView(renderer_d3_dc,renderer_d3_dsv,D3D11_CLEAR_DEPTH,1.0f,0);
-			double dt=(double)((c.QuadPart-lt.QuadPart)*1000000/tf.QuadPart);
-			update_editor(dt);
+			update_editor((double)((c.QuadPart-lt.QuadPart)*1000000/tf.QuadPart));
 		}
 		if (renderer_w==NULL){
 			break;
 		}
 		renderer_mf&=(~M_LEFT_DBL)&(~M_MIDDLE_DBL)&(~M_RIGHT_DBL)&(~M_X1_DBL)&(~M_X2_DBL);
-		IDXGISwapChain_Present(renderer_d3_sc,true,DXGI_PRESENT_DO_NOT_WAIT);
+		HRESULT r=IDXGISwapChain_Present(renderer_d3_sc,0,0);
+		if (r!=S_OK){
+			printf("%lx\n",r);
+			assert(0);
+		}
 		lt=c;
 	}
 }

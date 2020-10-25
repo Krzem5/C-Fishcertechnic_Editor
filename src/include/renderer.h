@@ -10,6 +10,8 @@
 #define TWO_PI ((float)6.283185307f)
 #define PI ((float)3.141592654f)
 #define PI_DIV_TWO ((float)1.570796327f)
+#define PI_DIV_180 ((float)0.017453293f)
+#define EPSILON ((float)0.0000001f)
 #define M_LEFT 0x001
 #define M_LEFT_DBL 0x002
 #define M_MIDDLE 0x004
@@ -83,8 +85,10 @@ struct _OBJECT_BUFFER{
 extern HWND renderer_w;
 extern uint32_t renderer_ww;
 extern uint32_t renderer_wh;
-extern uint16_t renderer_mx;
-extern uint16_t renderer_my;
+extern uint32_t renderer_wx;
+extern uint32_t renderer_wy;
+extern int16_t renderer_mx;
+extern int16_t renderer_my;
 extern uint16_t renderer_mf;
 extern float renderer_wsf;
 extern bool renderer_wf;
@@ -114,6 +118,14 @@ Matrix y_rotation_matrix(float a);
 
 
 Matrix perspective_fov_matrix(float fov,float a,float n,float f);
+
+
+
+Matrix ortographic_matrix(float t,float l,float b,float r,float n,float f);
+
+
+
+Matrix look_at_matrix(float ex,float ey,float ez,float dx,float dy,float dz,float ux,float uy,float uz);
 
 
 

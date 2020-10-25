@@ -48,8 +48,8 @@
 
 
 
-ID3D11VertexShader* vs=NULL;
-ID3D11PixelShader* ps=NULL;
+ID3D11VertexShader* ui_vs=NULL;
+ID3D11PixelShader* ui_ps=NULL;
 float* tb_vl=NULL;
 float* tb_lvl=NULL;
 ID3D11Buffer* tb_ib=NULL;
@@ -58,7 +58,7 @@ ID3D11Buffer* tb_lib=NULL;
 ID3D11Buffer* tb_lvb=NULL;
 ID3D11Buffer* tb_mxlib=NULL;
 float tb_op_a[]={0,0,0};
-ID3D11Buffer* cb=NULL;
+ID3D11Buffer* ui_cb=NULL;
 uint16_t _lc=C_NONE;
 uint16_t nc=C_NONE;
 bool mx=false;
@@ -391,9 +391,9 @@ void recalc_topbar(void){
 		*(tb_lvl+i*8+6)=TOPBAR_WINDOW_OP_STROKE_B+(*(tb_op_a+(i<2?0:2)))*(TOPBAR_WINDOW_OP_STROKE_LERP_R-TOPBAR_WINDOW_OP_STROKE_B);
 	}
 	if (renderer_wf==true){
-		if (renderer_my<TOPBAR_WINDOW_OP_HEIGHT){
+		if (renderer_my>=0&&renderer_my<TOPBAR_WINDOW_OP_HEIGHT){
 			nc=C_ARROW;
-			if ((renderer_mf&M_LEFT)!=0&&renderer_mx<renderer_ww-TOPBAR_WINDOW_OP_WIDTH*3&&d_tb==0){
+			if ((renderer_mf&M_LEFT)!=0&&renderer_mx>=0&&renderer_mx<renderer_ww-TOPBAR_WINDOW_OP_WIDTH*3&&d_tb==0){
 				if (mx==true){
 					mx=false;
 					ShowWindow(renderer_w,SW_RESTORE);
@@ -572,32 +572,37 @@ void init_ui(void){
 			D3D11_INPUT_PER_VERTEX_DATA
 		}
 	};
-	vs=load_vertex_shader(g_color_2d_vs,sizeof(g_color_2d_vs),il,sizeof(il)/sizeof(D3D11_INPUT_ELEMENT_DESC));
-	ps=load_pixel_shader(g_color_2d_ps,sizeof(g_color_2d_ps));
-	cb=create_constant_buffer(sizeof(struct CBufferLayout));
+	ui_vs=load_vertex_shader(g_color_2d_vs,sizeof(g_color_2d_vs),il,sizeof(il)/sizeof(D3D11_INPUT_ELEMENT_DESC));
+	ui_ps=load_pixel_shader(g_color_2d_ps,sizeof(g_color_2d_ps));
+	ui_cb=create_constant_buffer(sizeof(struct CBufferLayout));
 	recalc_topbar();
 }
 
 
 
 void update_ui(double dt){
+	recalc_topbar();
+	if (renderer_w==NULL){
+		return;
+	}
+}
+
+
+
+void draw_ui(void){
 	ID3D11DeviceContext_OMSetDepthStencilState(renderer_d3_dc,renderer_d3_ddss,1);
-	ID3D11DeviceContext_VSSetShader(renderer_d3_dc,vs,NULL,0);
-	ID3D11DeviceContext_PSSetShader(renderer_d3_dc,ps,NULL,0);
+	ID3D11DeviceContext_VSSetShader(renderer_d3_dc,ui_vs,NULL,0);
+	ID3D11DeviceContext_PSSetShader(renderer_d3_dc,ui_ps,NULL,0);
 	#define _near (0.1f)
 	#define _far (1000.0f)
 	struct CBufferLayout cb_dt={
 		raw_matrix(2.0f/renderer_ww,0,0,0,0,-2.0f/renderer_wh,0,0,0,0,1/(_far-_near),_near/(_near-_far),-1,1,0,1)
 	};
-	update_constant_buffer(cb,(void*)&cb_dt);
-	ID3D11DeviceContext_VSSetConstantBuffers(renderer_d3_dc,0,1,&cb);
-	ID3D11DeviceContext_PSSetConstantBuffers(renderer_d3_dc,0,1,&cb);
+	update_constant_buffer(ui_cb,(void*)&cb_dt);
+	ID3D11DeviceContext_VSSetConstantBuffers(renderer_d3_dc,0,1,&ui_cb);
+	ID3D11DeviceContext_PSSetConstantBuffers(renderer_d3_dc,0,1,&ui_cb);
 	float bf[]={0,0,0,0};
 	ID3D11DeviceContext_OMSetBlendState(renderer_d3_dc,renderer_d3_bse,bf,0xffffffff);
-	recalc_topbar();
-	if (renderer_w==NULL){
-		return;
-	}
 	if (nc!=_lc){
 		_lc=nc;
 		SetCursor(LoadCursor(NULL,MAKEINTRESOURCE(nc)));
