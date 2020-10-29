@@ -149,6 +149,7 @@ ID3D11PixelShader* ps=NULL;
 ID3D11Buffer* cb=NULL;
 RawMatrix pm;
 Camera c;
+BlockModel mdl;
 
 
 
@@ -186,10 +187,11 @@ void init_editor(void){
 	*(renderer_cc+3)=1;
 	c=create_camera(10,500,0,0,0,90,0,0,1);
 	c->enabled=true;
-	float n=0.00001f;
-	float f=10000;
+	float n=EPSILON;
+	float f=1000;
 	pm=raw_matrix(1/renderer_aspect_ratio,0,0,0,0,1,0,0,0,0,-2/(f-n),-(f+n)/(f-n),0,0,0,1);
 	init_block_list();
+	mdl=get_block_model_by_id(19317);
 	init_ui();
 }
 
@@ -322,8 +324,7 @@ void update_editor(double dt){
 	ID3D11DeviceContext_DrawIndexed(renderer_d3_dc,(uint32_t)g_ib_l,0,0);
 	RawMatrix tm=raw_identity_matrix();
 	RawMatrix rtm=raw_identity_matrix();
-	draw_block(blk_l.e,&tm,&rtm,NULL);
-	// printf("%f (%f)\n",dt*1e-6,t);
+	draw_block_model(blk_l.e+3,&tm,&rtm,NULL);
 	draw_ui();
 	free(cm);
 }
