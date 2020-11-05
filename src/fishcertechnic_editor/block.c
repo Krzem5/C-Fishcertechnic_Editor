@@ -106,14 +106,14 @@ void init_block_list(void){
 			(blk_l.e+blk_l.ln-1)->ill=(uint8_t)fgetc(f)|((uint8_t)fgetc(f)<<8)|((uint8_t)fgetc(f)<<16)|((uint8_t)fgetc(f)<<24);
 			(blk_l.e+blk_l.ln-1)->_fsz=sz;
 			(blk_l.e+blk_l.ln-1)->_fp=fp;
-			printf("ID: %llu, NM: `%s', RGB: #%02hhx%02hhx%02hhx, ILL: %lu, CH: (%hhu) [",(blk_l.e+blk_l.ln-1)->id,(blk_l.e+blk_l.ln-1)->nm,(blk_l.e+blk_l.ln-1)->r,(blk_l.e+blk_l.ln-1)->g,(blk_l.e+blk_l.ln-1)->b,(blk_l.e+blk_l.ln-1)->ill,(blk_l.e+blk_l.ln-1)->fl>>5);
-			for (uint8_t i=0;i<((blk_l.e+blk_l.ln-1)->fl>>5);i++){
-				if (i>0){
-					printf(", ");
-				}
-				printf("%llu",*((blk_l.e+blk_l.ln-1)->ch+i));
-			}
-			printf("], CN: (%hhu)\n",(blk_l.e+blk_l.ln-1)->cnl);
+			// printf("ID: %llu, NM: `%s', RGB: #%02hhx%02hhx%02hhx, ILL: %lu, CH: (%hhu) [",(blk_l.e+blk_l.ln-1)->id,(blk_l.e+blk_l.ln-1)->nm,(blk_l.e+blk_l.ln-1)->r,(blk_l.e+blk_l.ln-1)->g,(blk_l.e+blk_l.ln-1)->b,(blk_l.e+blk_l.ln-1)->ill,(blk_l.e+blk_l.ln-1)->fl>>5);
+			// for (uint8_t i=0;i<((blk_l.e+blk_l.ln-1)->fl>>5);i++){
+			// 	if (i>0){
+			// 		printf(", ");
+			// 	}
+			// 	printf("%llu",*((blk_l.e+blk_l.ln-1)->ch+i));
+			// }
+			// printf("], CN: (%hhu)\n",(blk_l.e+blk_l.ln-1)->cnl);
 			fclose(f);
 		}
 		if (FindNextFileA(fh,&fdt)==0){
@@ -133,10 +133,10 @@ void init_block_list(void){
 			}
 			if (k!=UINTMAX_MAX){
 				printf("Not Found - %llu (`%s', %llu)\n",*((blk_l.e+i)->ch+j),(blk_l.e+i)->nm,(blk_l.e+i)->id);
+				assert(0);
 			}
 		}
 	}
-	assert(0);
 	assert(GetLastError()==ERROR_NO_MORE_FILES);
 	FindClose(fh);
 }
@@ -247,7 +247,7 @@ void draw_block_model(BlockModel b,Matrix m,Matrix rm,Vector cl){
 	ID3D11DeviceContext_IASetIndexBuffer(renderer_d3_dc,b->ib,((b->fl&0x1)==0?DXGI_FORMAT_R16_UINT:DXGI_FORMAT_R32_UINT),0);
 	ID3D11DeviceContext_IASetPrimitiveTopology(renderer_d3_dc,D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	ID3D11DeviceContext_DrawIndexed(renderer_d3_dc,(uint32_t)b->ill,0,0);
-	// for (uint8_t i=0;i<(b->fl>>5);i++){
-	// 	draw_block_model(blk_l.e+(*(b->ch+i)),m,rm,NULL);
-	// }
+	for (uint8_t i=0;i<(b->fl>>5);i++){
+		draw_block_model(blk_l.e+(*(b->ch+i)),m,rm,NULL);
+	}
 }

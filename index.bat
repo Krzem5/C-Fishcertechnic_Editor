@@ -20,7 +20,7 @@ del *.pdb
 del *.exp
 del *.ilk
 del *.idb
-xcopy ..\rsrc\data data\
+xcopy ..\rsrc\data data\ /Q
 cls
 fishcertechnic_editor.exe
 :end

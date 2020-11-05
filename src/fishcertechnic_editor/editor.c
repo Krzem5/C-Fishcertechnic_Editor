@@ -191,7 +191,8 @@ void init_editor(void){
 	float f=1000;
 	pm=raw_matrix(1/renderer_aspect_ratio,0,0,0,0,1,0,0,0,0,-2/(f-n),-(f+n)/(f-n),0,0,0,1);
 	init_block_list();
-	mdl=get_block_model_by_id(19317);
+	mdl=get_block_model_by_id(78238);
+	/*22429,1835010,1835011,1048696,36734,36770*/
 	init_ui();
 }
 
@@ -324,7 +325,7 @@ void update_editor(double dt){
 	ID3D11DeviceContext_DrawIndexed(renderer_d3_dc,(uint32_t)g_ib_l,0,0);
 	RawMatrix tm=raw_identity_matrix();
 	RawMatrix rtm=raw_identity_matrix();
-	draw_block_model(blk_l.e+3,&tm,&rtm,NULL);
+	draw_block_model(mdl,&tm,&rtm,NULL);
 	draw_ui();
 	free(cm);
 }
