@@ -1,5 +1,3 @@
-### Github File Push Ignore
-
 build
 _preprocess.py
 rsrc/data/*.blk
